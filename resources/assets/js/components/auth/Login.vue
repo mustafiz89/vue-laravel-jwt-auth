@@ -2,6 +2,10 @@
      <div class="card card-container">
         <img id="profile-img" class="profile-img-card" v-bind:src="logoImage" />
         <!-- <p id="profile-name" class="profile-name-card">Incident</p> -->
+        <div class="alert alert-danger" v-if="error">
+            <p style="font-size:13px;font-weight:bold">{{ responseMessage }}</p>
+        </div>        
+
         <form class="form-signin" @submit.prevent="checkCredential">
             <span id="reauth-email" class="reauth-email"></span>
             <input type="text"  class="form-control" v-model="authenticate.email" placeholder="Enter Email" required autofocus >
@@ -11,7 +15,7 @@
                     <input type="checkbox" value="remember-me"> Remember me
                 </label>
             </div> -->
-            <button class="btn btn-lg btn-primary btn-block btn-signin" type="submit">Sign in</button>
+            <button class="btn btn-lg btn-primary btn-block btn-signin" type="submit">{{buttonText}}</button>
         </form><!-- /form -->
         <!-- <a href="#" class="forgot-password">
             Forgot the password?
@@ -24,9 +28,8 @@
         data(){
            return{
               logoImage:'public/images/ims.png' ,
-              error:false,
-              success:false,
-              errorMessage:'',
+              error:false,              
+              buttonText:"Sign In",
               authenticate:{
                 email:'',
                 password:''
@@ -35,26 +38,25 @@
            }     
         },
         methods:{
-            checkCredential(){
+            checkCredential(){               
+                this.buttonText="Authenticating...."
                 let authenticate={
                     email:this.authenticate.email,
                     password:this.authenticate.password
                 } 
                 axios.post('api/login', authenticate)
                   .then(response => {
-                    console.log(response)
-                    this.error = false
-                    this.success = true
-                    localStorage.setItem('token', response.data.token);
-                    this.responseMessage = response.statusText
+                    // console.log(response)
+                    this.error = false                    
+                    localStorage.setItem('token', response.data.token);                   
                     this.$router.push({ path : 'home' })
-                    console.log(localStorage.getItem('token'))
-                }).catch(error => {
-                        alert(123)
-                        console.log(error)
-                        this.error = true
-                        this.success = false
-                        this.responseMessage = error.statusText
+                                      
+                }).catch(error => {                        
+                        // console.log(error.response.data.error)
+                        this.authenticate.password=""
+                        this.error = true                       
+                        this.responseMessage = error.response.data.error
+                        this.buttonText="Sign In"
                 })       
              }                      
         }
@@ -62,19 +64,13 @@
     }
 </script>
 
-<style>
-/*
- * Specific styles of signin component
- */
-/*
- * General styles
- */
+<style scoped>
 body, html {
     font-family: "Roboto", sans-serif;
 }
 
 .card-container.card {
-    max-width: 350px;
+    max-width: 400px;
     padding: 40px 40px;
 }
 
@@ -87,9 +83,7 @@ body, html {
     cursor: default;
 }
 
-/*
- * Card component
- */
+
 .card {
     background-color: #F7F7F7;
     /* just in case there no content*/
@@ -115,9 +109,7 @@ body, html {
     border-radius: 50%;
 }
 
-/*
- * Form styles
- */
+
 .profile-name-card {
     font-size: 16px;
     font-weight: bold;
@@ -170,9 +162,8 @@ body, html {
 }
 
 .btn.btn-signin {
-    /*background-color: #4d90fe; */
+    
     background-color: rgb(104, 145, 162);
-    /* background-color: linear-gradient(rgb(104, 145, 162), rgb(12, 97, 33));*/
     padding: 0px;
     font-weight: 700;
     font-size: 14px;
